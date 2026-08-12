@@ -6,3 +6,17 @@ license.workspace = true
 repository.workspace = true
 
 [dependencies]
+adv_core = { package = "astro-data-vault-core", path = "../astro-data-vault-core" }
+
+bytes.workspace = true
+
+sqlx = { version = "0.9.0", features = [
+    "runtime-tokio",
+    "tls-rustls",
+    "sqlite",
+    "macros",
+    "chrono",
+] }
+
+[dev-dependencies]
+tokio = { version = "1.53.1", features = ["full"] }
