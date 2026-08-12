@@ -1,0 +1,10 @@
+[package]
+name = "astro-data-vault"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+adv_core = { package = "astro-data-vault-core", path = "../astro-data-vault-core" }
+adv_db = { package = "astro-data-vault-db", path = "../astro-data-vault-db" }
