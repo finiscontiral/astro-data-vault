@@ -11,3 +11,6 @@ description = "Astro Data Vault"
 readme = "README.md"
 
 [workspace.dependencies]
+bytes = { version = "1.12.1", features = ["serde"] }
+chrono = { version = "0.4.45", features = ["serde"] }
+serde = { version = "1.0.229", features = ["derive"] }

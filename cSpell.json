@@ -3,5 +3,8 @@
   "language": "en",
   "words": [
     "CCSDS",
+    "chrono",
+    "serde",
+    "sqlx"
   ]
 }
