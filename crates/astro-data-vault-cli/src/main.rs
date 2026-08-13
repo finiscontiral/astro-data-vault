@@ -1,4 +1,4 @@
-use std::path::Path;
+use std::{fs, io, path::Path};
 
 use clap::{Parser, ValueEnum};
 
@@ -17,9 +17,26 @@ struct Cli {
 }
 
 impl Cli {
-    fn run(&self) -> Result<(), Box<dyn std::error::Error>> {
-        let fmt = OrbitFormat::from(self.odm_fmt);
+    fn run(&self) -> io::Result<()> {
         let f_path = Path::new(&self.file_path);
+
+        let metadata = fs::metadata(f_path)?;
+
+        if !metadata.is_file() {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidInput,
+                format!("Path is not a file: {:?}", f_path),
+            ));
+        }
+
+        if metadata.len() == 0 {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidData,
+                format!("File is empty: {:?}", f_path),
+            ));
+        }
+
+        let fmt = OrbitFormat::from(self.odm_fmt);
 
         println!("File Path: {:?}", f_path);
         println!("ODM Format: {:?}", fmt);
