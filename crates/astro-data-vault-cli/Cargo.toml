@@ -9,3 +9,5 @@ readme.workspace = true
 
 [dependencies]
 clap = { version = "4.6.6", features = ["derive"] }
+
+adv_core = { package = "astro-data-vault-core", path = "../astro-data-vault-core" }

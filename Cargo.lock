@@ -79,6 +79,7 @@ dependencies = [
 name = "astro-data-vault-cli"
 version = "0.1.0"
 dependencies = [
+ "astro-data-vault-core",
  "clap",
 ]
 
