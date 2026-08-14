@@ -259,6 +259,51 @@ impl TryFrom<&str> for Tle {
 mod tests {
     use super::*;
 
+    /// Test TLE sample.
+    /// Source [SPACE-TRACK.ORG](https://www.space-track.org/documentation#/tle)
+    /// TLE data listed in the Basic Info section.
+    const SAMPLE_TLE_NAME: &str = "ISS (ZARYA)";
+    const SAMPLE_TLE_LINE1: &str =
+        "1 25544U 98067A   04236.56031392  .00020137  00000-0  16538-3 0  9993";
+    const SAMPLE_TLE_LINE2: &str =
+        "2 25544  51.6335 344.7760 0007976 126.2523 325.9359 15.70406856328906";
+
+    mod validation {
+        use super::*;
+
+        #[test]
+        fn test_validate_checksum() {
+            let line1_result = Tle::validate_checksum(SAMPLE_TLE_LINE1.as_bytes());
+            assert!(line1_result.is_ok());
+
+            let line2_result = Tle::validate_checksum(SAMPLE_TLE_LINE2.as_bytes());
+            assert!(line2_result.is_ok());
+        }
+
+        #[test]
+        fn test_validate_line1() {
+            let target = SAMPLE_TLE_LINE1;
+            println!("Checking target :{}", target);
+
+            let result = Tle::validate_line1(SAMPLE_TLE_LINE1);
+            assert!(
+                result.is_ok(),
+                "Failed to validate line1: {:?}",
+                result.err()
+            );
+        }
+
+        #[test]
+        fn test_validate_line2() {
+            let result = Tle::validate_line2(SAMPLE_TLE_LINE2);
+            assert!(
+                result.is_ok(),
+                "Failed to validate line2: {:?}",
+                result.err()
+            );
+        }
+    }
+
     mod compute_checksum {
         use super::*;
 
