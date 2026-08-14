@@ -37,6 +37,41 @@ pub struct Tle {
 }
 
 impl Tle {
+    pub fn try_new(
+        name: impl AsRef<str>,
+        line1: impl AsRef<str>,
+        line2: impl AsRef<str>,
+    ) -> io::Result<Self> {
+        let name = name.as_ref().trim().to_string();
+        let line1 = line1.as_ref().trim().to_string();
+        let line2 = line2.as_ref().trim().to_string();
+
+        Self::validate_fmt(&line1, &line2)?;
+
+        Ok(Self { name, line1, line2 })
+    }
+
+    pub fn try_from_str(input: impl AsRef<str>) -> io::Result<Self> {
+        let lines: Vec<String> = input
+            .as_ref()
+            .lines()
+            .map(|l| l.trim().to_string())
+            .filter(|l| !l.is_empty())
+            .collect();
+
+        match lines.len() {
+            3 => Ok(Self::try_new(&lines[0], &lines[1], &lines[2])?),
+            2 => Ok(Self::try_new("UNKNOWN", &lines[0], &lines[1])?),
+            _ => Err(io::Error::new(
+                io::ErrorKind::InvalidData,
+                format!(
+                    "Invalid TLE format: expected 2 or 3 lines, got {}",
+                    lines.len()
+                ),
+            )),
+        }
+    }
+
     pub fn validate_fmt(line1: &str, line2: &str) -> io::Result<()> {
         Self::validate_line1(line1)?;
         Self::validate_line2(line2)?;
@@ -202,5 +237,13 @@ impl Tle {
             }
         }
         Ok(())
+    }
+}
+
+impl TryFrom<&str> for Tle {
+    type Error = io::Error;
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        Tle::try_from_str(value)
     }
 }
