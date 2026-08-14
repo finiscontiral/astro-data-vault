@@ -282,9 +282,6 @@ mod tests {
 
         #[test]
         fn test_validate_line1() {
-            let target = SAMPLE_TLE_LINE1;
-            println!("Checking target :{}", target);
-
             let result = Tle::validate_line1(SAMPLE_TLE_LINE1);
             assert!(
                 result.is_ok(),
