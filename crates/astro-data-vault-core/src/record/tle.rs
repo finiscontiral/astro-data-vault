@@ -247,3 +247,70 @@ impl TryFrom<&str> for Tle {
         Tle::try_from_str(value)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    mod compute_checksum {
+        use super::*;
+
+        #[test]
+        fn test_empty() {
+            let bytes = b"";
+            let checksum = Tle::compute_checksum(bytes);
+            assert_eq!(checksum, 0);
+        }
+
+        #[test]
+        fn test_space() {
+            let bytes = b" ";
+            let checksum = Tle::compute_checksum(bytes);
+            assert_eq!(checksum, 0);
+        }
+
+        #[test]
+        fn test_plus() {
+            let bytes = b"+";
+            let checksum = Tle::compute_checksum(bytes);
+            assert_eq!(checksum, 0);
+        }
+
+        #[test]
+        fn test_minus() {
+            let bytes = b"-";
+            let checksum = Tle::compute_checksum(bytes);
+            assert_eq!(checksum, 1);
+        }
+
+        #[test]
+        fn test_digits() {
+            let bytes = b"0123456789";
+            let checksum = Tle::compute_checksum(bytes);
+            assert_eq!(checksum, 5);
+        }
+
+        #[test]
+        fn test_alphabet() {
+            let bytes = b"qwertyuiopasdfghjklzxcvbnm";
+            let checksum = Tle::compute_checksum(bytes);
+            assert_eq!(checksum, 0);
+        }
+
+        #[test]
+        fn test_exact_ten() {
+            // '5' (5) + '5' (5) = 10 -> 10 % 10 = 0
+            let bytes = b"55";
+            let checksum = Tle::compute_checksum(bytes);
+            assert_eq!(checksum, 0);
+        }
+
+        #[test]
+        fn test_modulo_ten() {
+            // '9' (9) + '9' (9) = 18 -> 18 % 10 = 8
+            let bytes = b"99";
+            let checksum = Tle::compute_checksum(bytes);
+            assert_eq!(checksum, 8);
+        }
+    }
+}
