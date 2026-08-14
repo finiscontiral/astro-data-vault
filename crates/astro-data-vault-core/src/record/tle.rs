@@ -1,6 +1,206 @@
+use std::io;
+
+pub mod line1 {
+    /// LINE1の最大行数
+    pub const MIN_LEN: usize = 69;
+
+    /// ' ' が入るインデックス
+    pub const SPACE_INDICES: [usize; 7] = [8, 17, 32, 43, 52, 61, 63];
+
+    /// '.'が入るインデックス
+    pub const DOT_INDICES: [usize; 2] = [23, 34];
+
+    /// '+', '-', ' 'のどれかが入るインデックス
+    pub const SIGN_OR_SPACE_INDICES: [usize; 2] = [33, 44];
+
+    /// 指数部の符号が入るインデックス
+    /// ここに'+' '-'がない場合は該当インデックスとその次のインデックスが空欄になる
+    pub const EXPONENT_INDICES: [usize; 2] = [50, 59];
+}
+
+pub mod line2 {
+    /// LINE2の最大行数
+    pub const MIN_LEN: usize = 69;
+
+    /// ' ' が入るインデックス
+    pub const SPACE_INDICES: [usize; 7] = [7, 16, 25, 33, 42, 51, 63];
+
+    /// '.'が入るインデックス
+    pub const DOT_INDICES: [usize; 5] = [11, 20, 37, 46, 54];
+}
+
 #[derive(Debug)]
 pub struct Tle {
     pub name: String,
     pub line1: String,
     pub line2: String,
+}
+
+impl Tle {
+    pub fn validate_fmt(line1: &str, line2: &str) -> io::Result<()> {
+        Self::validate_line1(line1)?;
+        Self::validate_line2(line2)?;
+        Ok(())
+    }
+
+    /// line1のFMTの確認
+    pub fn validate_line1(line: &str) -> io::Result<()> {
+        let b = line.as_bytes();
+
+        if b.len() < line1::MIN_LEN {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidData,
+                "Line 1 is too short",
+            ));
+        }
+
+        // check starts
+
+        (!b.starts_with(b"1 ")).then_some(()).ok_or_else(|| {
+            io::Error::new(
+                io::ErrorKind::InvalidData,
+                "Invalid TLE line 1: must start with '1 '",
+            )
+        })?;
+
+        Self::check_expected_char(b, &line1::SPACE_INDICES, b' ').map_err(|idx| {
+            io::Error::new(
+                io::ErrorKind::InvalidData,
+                format!("Invalid TLE line 1: expected space at column {}", idx + 1),
+            )
+        })?;
+
+        Self::check_expected_char(b, &line1::DOT_INDICES, b'.').map_err(|idx| {
+            io::Error::new(
+                io::ErrorKind::InvalidData,
+                format!("Invalid TLE line 1: expected . at column {}", idx + 1),
+            )
+        })?;
+
+        Self::check_any_char(b, &line1::SIGN_OR_SPACE_INDICES, &[b' ', b'+', b'-']).map_err(
+            |idx| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    format!(
+                        "Invalid TLE line 1: expected '+', '-', or space at column {}",
+                        idx + 1
+                    ),
+                )
+            },
+        )?;
+        for &idx in &line1::EXPONENT_INDICES {
+            if b[idx] == b' ' {
+                if b[idx + 1] != b' ' {
+                    return Err(io::Error::new(
+                        io::ErrorKind::InvalidData,
+                        format!(
+                            "Invalid TLE line 1: expected consecutive spaces starting at column {}",
+                            idx + 1
+                        ),
+                    ));
+                }
+            }
+        }
+
+        Self::validate_checksum(b)?;
+
+        Ok(())
+    }
+
+    /// line2のFMT確認
+    pub fn validate_line2(line2: &str) -> io::Result<()> {
+        let b = line2.as_bytes();
+
+        if b.len() < line2::MIN_LEN {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidData,
+                "Line 2 is too short",
+            ));
+        }
+
+        // check starts
+
+        (!b.starts_with(b"2 ")).then_some(()).ok_or_else(|| {
+            io::Error::new(
+                io::ErrorKind::InvalidData,
+                "Invalid TLE line 2: must start with '2 '",
+            )
+        })?;
+
+        Self::check_expected_char(b, &line2::SPACE_INDICES, b' ').map_err(|idx| {
+            io::Error::new(
+                io::ErrorKind::InvalidData,
+                format!("Invalid TLE line 2: expected space at column {}", idx + 1),
+            )
+        })?;
+
+        Self::check_expected_char(b, &line2::DOT_INDICES, b'.').map_err(|idx| {
+            io::Error::new(
+                io::ErrorKind::InvalidData,
+                format!("Invalid TLE line 2: expected . at column {}", idx + 1),
+            )
+        })?;
+
+        Self::validate_checksum(b)?;
+
+        Ok(())
+    }
+
+    fn validate_checksum(bytes: &[u8]) -> io::Result<()> {
+        if bytes.is_empty() {
+            return Err(io::Error::new(io::ErrorKind::InvalidData, "Line is empty"));
+        }
+
+        let last_bytes = bytes[bytes.len() - 1];
+        if !last_bytes.is_ascii_digit() {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidData,
+                "Checksum must be a digit",
+            ));
+        }
+
+        let expected = last_bytes - b'0';
+        let actual = Self::compute_checksum(&bytes[..bytes.len() - 1]);
+
+        if actual != expected {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidData,
+                format!("Checksum mismatch: expected {}, got {}", expected, actual),
+            ));
+        }
+        Ok(())
+    }
+
+    fn compute_checksum(bytes: &[u8]) -> u8 {
+        let sum: u32 = bytes
+            .iter()
+            .map(|b| match b {
+                b'0'..=b'9' => (b - b'0') as u32,
+                b'-' => 1,
+                _ => 0,
+            })
+            .sum();
+
+        (sum % 10) as u8
+    }
+
+    /// `bytes`内に指定した`expected`が`indices`の位置にあるか確認する関数
+    fn check_expected_char(bytes: &[u8], indices: &[usize], expected: u8) -> Result<(), usize> {
+        for &idx in indices {
+            if bytes[idx] != expected {
+                return Err(idx);
+            }
+        }
+        Ok(())
+    }
+
+    /// `bytes`内に指定した`expected_chars`が`indices`の位置にあるか確認する関数
+    fn check_any_char(bytes: &[u8], indices: &[usize], expected_chars: &[u8]) -> Result<(), usize> {
+        for &idx in indices {
+            if !expected_chars.contains(&bytes[idx]) {
+                return Err(idx);
+            }
+        }
+        Ok(())
+    }
 }
