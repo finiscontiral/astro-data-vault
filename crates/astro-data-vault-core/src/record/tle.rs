@@ -29,6 +29,13 @@ pub mod line2 {
     pub const DOT_INDICES: [usize; 5] = [11, 20, 37, 46, 54];
 }
 
+/// TLE (Two-Line Element Set) representation
+/// 
+/// # Note
+/// - **TODO**: Alpha-5 format is not currently supported. (Planned for future update)
+/// 
+/// # Reference
+/// Created in accordance with the [Space-Track TLE documentation](https://www.space-track.org/documentation#/tle).
 #[derive(Debug)]
 pub struct Tle {
     pub name: String,
