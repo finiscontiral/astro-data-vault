@@ -23,17 +23,17 @@ pub mod line2 {
     pub const MIN_LEN: usize = 69;
 
     /// ' ' が入るインデックス
-    pub const SPACE_INDICES: [usize; 7] = [7, 16, 25, 33, 42, 51, 63];
+    pub const SPACE_INDICES: [usize; 6] = [7, 16, 25, 33, 42, 51];
 
     /// '.'が入るインデックス
     pub const DOT_INDICES: [usize; 5] = [11, 20, 37, 46, 54];
 }
 
 /// TLE (Two-Line Element Set) representation
-/// 
+///
 /// # Note
 /// - **TODO**: Alpha-5 format is not currently supported. (Planned for future update)
-/// 
+///
 /// # Reference
 /// Created in accordance with the [Space-Track TLE documentation](https://www.space-track.org/documentation#/tle).
 #[derive(Debug)]
@@ -98,12 +98,12 @@ impl Tle {
 
         // check starts
 
-        (!b.starts_with(b"1 ")).then_some(()).ok_or_else(|| {
-            io::Error::new(
+        if !b.starts_with(b"1 ") {
+            return Err(io::Error::new(
                 io::ErrorKind::InvalidData,
                 "Invalid TLE line 1: must start with '1 '",
-            )
-        })?;
+            ));
+        };
 
         Self::check_expected_char(b, &line1::SPACE_INDICES, b' ').map_err(|idx| {
             io::Error::new(
@@ -162,12 +162,12 @@ impl Tle {
 
         // check starts
 
-        (!b.starts_with(b"2 ")).then_some(()).ok_or_else(|| {
-            io::Error::new(
+        if !b.starts_with(b"2 ") {
+            return Err(io::Error::new(
                 io::ErrorKind::InvalidData,
                 "Invalid TLE line 2: must start with '2 '",
-            )
-        })?;
+            ));
+        };
 
         Self::check_expected_char(b, &line2::SPACE_INDICES, b' ').map_err(|idx| {
             io::Error::new(
