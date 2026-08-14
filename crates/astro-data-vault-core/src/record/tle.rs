@@ -302,6 +302,12 @@ mod tests {
                 result.err()
             );
         }
+
+        #[test]
+        fn test_validate_fmt() {
+            let result = Tle::validate_fmt(SAMPLE_TLE_LINE1, SAMPLE_TLE_LINE2);
+            assert!(result.is_ok());
+        }
     }
 
     mod compute_checksum {
