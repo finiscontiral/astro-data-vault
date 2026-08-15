@@ -2,6 +2,9 @@ use bytes::Bytes;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
+mod tle;
+pub use tle::Tle;
+
 /// Data Format
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum OrbitFormat {
